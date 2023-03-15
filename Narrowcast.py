@@ -10,11 +10,15 @@ from Cast import *
 
 VERSION = '0.0.1'
 
+# Blocks know what show they're going to use and
+# whether the show should be played consecutively or shuffled
 class Block:
     def __init__(self, show, order):
         self.show = show
         self.order = order
 
+# Channel knows its name, block here is the default length of a block of the schedule (consider renaming),
+# and a list of blocks that make up the 24 hour schedule. Config sets up the blocks with a place holder show.
 class Channel:
     def __init__(self, name, block=30):
         self.name = name
@@ -62,17 +66,22 @@ class ChannelGUI(ttk.Frame):
         def about():
             Messagebox.ok(message='NarrowCast version: %s' % VERSION)
 
+        # Create a new library
         def newLibrary():
             name = Querybox.get_string(prompt='Enter Library Name', title='New Channel')
             path = Querybox.get_string(prompt='Enter Library Path', title='New Channel')
             library = addNewLibrary(name, path)
             self.libraries.append(library)
+
+            # Save the library for retrieval on later launches
             save_object(self.libraries, 'libraries.pkl')
             refreshLibraries()
 
+        # Remove a library TBD
         def delLibrary():
             pass
 
+        # Helper to add libaries to view and avoid duplicates
         def refreshLibraries():
             for lib in self.libraries:
                 try:
@@ -85,6 +94,7 @@ class ChannelGUI(ttk.Frame):
                     except:
                         pass
 
+        # Retrieve the show names from a library
         def getShowsFromLibrary(name):
             for lib in self.libraries:
                 if(lib.name == name):
@@ -94,11 +104,13 @@ class ChannelGUI(ttk.Frame):
                     return ret
             return "Library not found."
 
+        # Create a new channel
         def newChannel():
             name = Querybox.get_string(prompt='Enter Channel Name', title='New Channel')
             self.channels.append(Channel(name))
             refreshChannels()
 
+        # Change settings about a channel
         def editChannel():
             edit = ttk.Toplevel(title='Edit Channels')
             selected = ttk.StringVar()
@@ -112,6 +124,7 @@ class ChannelGUI(ttk.Frame):
             btn = ttk.Button(master=edit, text='OK', compound=LEFT, command=lambda: edit.destroy())
             btn.grid(row=2, column=1)
 
+        # Remove a channel
         def delChannel(name):
             self.tabs[name].destroy()
             del self.tabs[name]
@@ -121,6 +134,7 @@ class ChannelGUI(ttk.Frame):
                 print(name + " not found in Channels.")
             refreshChannels()
 
+        # Helper to add channels to the tabs and avoid duplicates
         def refreshChannels():
             for channel in self.channels:
                 if(channel.name not in self.tabs):
@@ -129,6 +143,8 @@ class ChannelGUI(ttk.Frame):
                     notebook.add(tv, text=[channel.name])
                     i = 0
                     j = 0
+
+                    # Add block settings to the tab
                     for slot, show in channel.blocks.items():
                         lbl = ttk.Label(tv, text=slot).grid(row=j, column=i)
                         slotted = ttk.Combobox(tv, width = 20, state=READONLY)
@@ -144,14 +160,18 @@ class ChannelGUI(ttk.Frame):
 
                     ttk.Button(master=tv, text='Save Schedule', command=lambda: saveSchedule(channel, uiDic)).grid(row=j+1, column=6)
                     self.tabs[channel.name] = tv
+
+            # Save the channel for retrieval on later launches
             save_object(self.channels, 'channels.pkl')
 
+        # Get a channel by name
         def getChannel(name):
             for channel in self.channels:
                 if(channel.name == name):
                     return channel
             return
 
+        # Save the schedule for a channel for retrieval on later launches
         def saveSchedule(channel, uiDic):
             schedule = {}
             for slot, show in channel.blocks.items():
@@ -173,6 +193,7 @@ class ChannelGUI(ttk.Frame):
             self.schedules[channel] = schedule
             save_object(self.schedules, 'schedules.pkl')
 
+        # Helper functions for UI
         def onTreeSelect(event):
             self.chosen = libtv.selection()[0]
             getUpdateData()
@@ -182,6 +203,7 @@ class ChannelGUI(ttk.Frame):
             for box in self.slotboxes:
                 box['values'] = self.choices
 
+        # Begin the cast (Need to unhard code the shorts folder)
         def narrowCast():
             cast(self.schedules, "G:\Cartoons\Shorts and Station IDs")
 
@@ -227,6 +249,7 @@ class ChannelGUI(ttk.Frame):
         notebook = ttk.Notebook(right_panel)
         notebook.pack()
 
+        # Check for saved files
         try:
             with open('libraries.pkl', 'rb') as libs:
                 self.libraries = pickle.load(libs)

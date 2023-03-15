@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<!--html contains css and javascript to reduce file copy calls-->
   <head>
     <meta charset="utf-8">
     <title>NarrowCast</title>
@@ -57,6 +58,7 @@
       // Video overlay element
       var videoOverlay = document.getElementById('video-overlay');
 
+      // Get current military time to index appropriately when the page first loads
       function getCurrentMilitaryTime() {
         var now = new Date();
         var hours = now.getHours();
@@ -68,12 +70,22 @@
         } else {
           time += '00';
         }
+        console.log(time);
+        if(minutes > 30){
+          minutes -= 30
+        }
 
         r = [time, minutes]
         return r;
       }
 
       function playVideo(index, time=0) {
+        /* time will only not equal 0 on the first call when the page loads
+         * On page load, use time to determine where in the schedule we should be
+         * and skip far enough into the video to make it appear as if the channel
+         * was running even when it wasn't being watched, like standard TV
+         */
+
         // Set current video index
         currentVideoIndex = index;
         let currentVideoDuration = videoPlayer.duration;
@@ -126,10 +138,12 @@
 			$(document).ready(function() {
 			  $.getJSON('./playlist.json', function(data) {
 			    playlist = data;
+          //NEXT: Make this work with hour blocks too
           t = getCurrentMilitaryTime()
+          console.log(t)
           let index = playlist.findIndex(item => item.title === t[0]);
 
-			    playVideo(index, (t[1]  * 60));
+			    playVideo(index,(t[1] * 60));
 			  }).fail(function() {
 			    alert('Error getting playlist!');
 			  });

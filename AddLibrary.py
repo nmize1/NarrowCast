@@ -1,4 +1,19 @@
 import os
+# Library Manager
+# Libraries know their name, path, and have a list of Shows
+# Shows know their name, path, and have a list of Seasons
+# Seasons know their name, path, and have a list of Episodes
+# Episodes know their name and path.
+# Aside from episodes, they all have a function to populate their lists.
+
+# Libraries should be formatted on the drive as such:
+# LIBRARY_FOLDER
+#   SHOW1_FOLDER:
+#       SEASON1_FOLDER:
+#           EPISODE1.mp4 (Other filetypes may work, but aren't supported yet)
+#           ..... (As many episodes as you want)
+#       ..... (As many seasons as you want)
+#   ..... (As many shows as you want)
 
 class Episode:
     def __init__(self, name, path):
