@@ -1,6 +1,6 @@
 # NarrowCast
 
-Create a local network stream of your own TV channel.
+Create a local network stream of your own TV channels.
 
 ### Prerequisites
 
