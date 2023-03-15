@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>NarrowCast</title>
+    <style>
+      /* Style for video container */
+      #video-container {
+        width: 1366px;
+        height: 768px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      /* Style for video player */
+      #video-player {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Style for video overlay */
+      #video-overlay {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 2em;
+        z-index: 1;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="video-container">
+      <video id="video-player" autoplay controls>
+        <source src="" type="video/mp4">
+      </video>
+      <div id="video-overlay">Loading...</div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      // Playlist array
+      var playlist = [];
+
+      // Current video index
+      var currentVideoIndex = 0;
+
+      // Video player element
+      var videoPlayer = document.getElementById('video-player');
+
+      // Video overlay element
+      var videoOverlay = document.getElementById('video-overlay');
+
+      function getCurrentMilitaryTime() {
+        var now = new Date();
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        var time = hours + ':';
+
+        if (minutes >= 30) {
+          time += '30';
+        } else {
+          time += '00';
+        }
+
+        r = [time, minutes]
+        return r;
+      }
+
+      function playVideo(index, time=0) {
+        // Set current video index
+        currentVideoIndex = index;
+        let currentVideoDuration = videoPlayer.duration;
+
+        // Check if time is longer than current video duration
+        if (time > currentVideoDuration) {
+          time -= currentVideoDuration;
+          currentVideoIndex++;
+          // Call playVideo() recursively with updated index and time
+          playVideo(currentVideoIndex, time);
+          return;
+        }
+
+        // Load video and play
+        videoPlayer.src = "http://" + playlist[currentVideoIndex].src;
+        videoPlayer.load();
+        videoPlayer.currentTime = time;
+        videoPlayer.play();
+
+        // Show loading overlay
+        videoOverlay.style.display = 'flex';
+      }
+
+      // Play next video in playlist
+      function playNext() {
+				if (currentVideoIndex < playlist.length - 1) {
+				currentVideoIndex++;
+				} else {
+				currentVideoIndex = 0;
+				}
+				playVideo(currentVideoIndex);
+			}
+
+			// Play previous video in playlist
+		  function playPrevious() {
+		    if (currentVideoIndex > 0) {
+		      currentVideoIndex--;
+		    } else {
+		      currentVideoIndex = playlist.length - 1;
+		    }
+		    playVideo(currentVideoIndex);
+		  }
+
+		  // Hide loading overlay when video is ready to play
+		  videoPlayer.addEventListener('canplay', function() {
+		    videoOverlay.style.display = 'none';
+		  });
+
+			// Load playlist from JSON file
+			$(document).ready(function() {
+			  $.getJSON('./playlist.json', function(data) {
+			    playlist = data;
+          t = getCurrentMilitaryTime()
+          let index = playlist.findIndex(item => item.title === t[0]);
+
+			    playVideo(index, (t[1]  * 60));
+			  }).fail(function() {
+			    alert('Error getting playlist!');
+			  });
+			});
+
+		  // Bind play/previous/next events to video player controls
+		  videoPlayer.addEventListener('ended', playNext);
+		  document.addEventListener('keydown', function(event) {
+		    if (event.keyCode == 37) {
+		      playPrevious();
+		    } else if (event.keyCode == 39) {
+		      playNext();
+		    }
+		  });
+		</script>
+	</body>
+</html>
